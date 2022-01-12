@@ -7,5 +7,6 @@
       pkgs.python39Packages.joblib
       pkgs.python39Packages.rich
       pkgs.python39Packages.fire
+      pkgs.python39Packages.chardet
     ];
 }
