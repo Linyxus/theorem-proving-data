@@ -1,6 +1,5 @@
 '''
-download_repos.py
-Downloads all the repositories listed in repo_names.csv
+This file is based on EleutherAI/github-downloader/download_repos.py.
 '''
 
 import os
