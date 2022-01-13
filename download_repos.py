@@ -33,7 +33,7 @@ def load_json_gz(file_list):
             yield json.loads(line)
 
 
-INFO_DIR = "coq_repo_index/"
+INFO_DIR = "agda_repo_index/"
 
 repo_infos = load_json_gz(os.path.join(INFO_DIR, x) for x in os.listdir(INFO_DIR))
 
