@@ -18,6 +18,7 @@ class AppState:
     input_dir: str
     output_dir: str
     repo_list: List[str]
+    file_ext: str
     buffer: List[dict]
     current_repo_id: int = 0
     next_block_id: int = 0
@@ -28,12 +29,13 @@ def get_repo_list(root_dir: str) -> List[str]:
     return [x.replace("|", "/") for x in os.listdir(root_dir)]
 
 
-def init_app_state(input_dir: str, output_dir: str, buffer_size: int):
+def init_app_state(input_dir: str, output_dir: str, buffer_size: int, file_ext: str):
     repo_list = get_repo_list(input_dir)
     return AppState(
         input_dir=input_dir,
         output_dir=output_dir,
         repo_list=repo_list,
+        file_ext=file_ext,
         buffer=[],
         current_repo_id=0,
         next_block_id=0,
@@ -64,16 +66,16 @@ def load_state(data_dir: str) -> Optional[AppState]:
         return AppState(**obj)
 
 
-def list_source_files(repo_dir: str):
+def list_source_files(repo_dir: str, file_ext: str = ".v"):
     for root, _, files in os.walk(repo_dir):
         for name in files:
-            if name.endswith(".v"):
+            if name.endswith(file_ext):
                 yield os.path.join(root, name), name
 
 
-def extract_repo_source(data_dir: str, repo_path: str) -> Iterable[dict]:
+def extract_repo_source(data_dir: str, repo_path: str, file_ext: str = ".v") -> Iterable[dict]:
     repo_dir = os.path.join(data_dir, repo_path.replace("/", "|"))
-    for real_path, file_path in list_source_files(repo_dir):
+    for real_path, file_path in list_source_files(repo_dir, file_ext=file_ext):
         try:
             with open(real_path, "rb") as f:
                 content = f.read()
@@ -100,7 +102,7 @@ def step(state: AppState) -> AppState:
         return state
 
     repo = state.repo_list[state.current_repo_id]
-    repo_sources = list(extract_repo_source(state.input_dir, repo))
+    repo_sources = list(extract_repo_source(state.input_dir, repo, file_ext=state.file_ext))
 
     next_state: AppState = copy.copy(state)
     next_state.current_repo_id += 1
@@ -134,10 +136,11 @@ def app(
     input_dir: str = "./coq_repo",
     output_dir: str = "./processed_data",
     buffer_size: str = 1000,
+    file_ext: str = ".v",
 ):
     state = load_state(output_dir)
     if state is None:
-        state = init_app_state(input_dir, output_dir, buffer_size)
+        state = init_app_state(input_dir, output_dir, buffer_size, file_ext)
         console.log(f"Initialized from scratch, current repo={state.current_repo_id}")
     else:
         console.log(f"Resumed from checkpoint, current repo={state.current_repo_id}")
